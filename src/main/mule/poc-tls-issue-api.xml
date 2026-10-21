@@ -1,0 +1,54 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule xmlns:tracing="http://www.mulesoft.org/schema/mule/tracing" xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core"
+	xmlns:http="http://www.mulesoft.org/schema/mule/http"
+	xmlns="http://www.mulesoft.org/schema/mule/core" xmlns:doc="http://www.mulesoft.org/schema/mule/documentation" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd
+http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd
+http://www.mulesoft.org/schema/mule/tracing http://www.mulesoft.org/schema/mule/tracing/current/mule-tracing.xsd">
+	
+	<flow name="poc-tls-issue-apiFlow" doc:id="5188586b-73f3-4cb6-a5f9-40b0aeec2c5a" >
+		<http:listener doc:name="Listener" doc:id="5d123a4f-ac70-48dc-bec7-04643c6edf41" config-ref="httpListenerConfig" path="/certificate">
+			<http:error-response >
+				<http:body ><![CDATA[#[payload]]]></http:body>
+			</http:error-response>
+		</http:listener>
+		<ee:transform doc:name="Transform Message" doc:id="54b9265a-8555-4861-8a79-4d84e4323aeb" >
+			<ee:message >
+			</ee:message>
+			<ee:variables >
+				<ee:set-variable variableName="correlationID" ><![CDATA[%dw 2.0
+output application/java
+---
+uuid()]]></ee:set-variable>
+			</ee:variables>
+		</ee:transform>
+		<tracing:with-correlation-id doc:name="With CorrelationID" doc:id="2f7fbfc3-7123-48ca-a72c-877ef22b3a51" correlationId="#[vars.correlationID]">
+			<logger level="INFO" doc:name="Logger" doc:id="63623caa-a8fc-4015-9083-7e5a23a756fd" />
+			<try doc:name="Try" doc:id="bc498f8c-0eb6-4bd4-b0b7-4e8c3fb6ef82">
+			<http:request method="GET" doc:name="Request" doc:id="2bba93fe-a473-4032-8cdc-d64621f08eae" config-ref="HTTP_Request_configuration" path="/" />
+			<error-handler>
+				<on-error-propagate enableNotifications="true" logException="true" doc:name="On Error Propagate" doc:id="f240bb3a-a372-4e91-b4d4-0824bc81c022">
+				<ee:transform doc:name="Transform Message" doc:id="49569dbc-e2e0-42ed-ab6b-07a3fcabcd53">
+					<ee:message>
+						<ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+{
+    event: "event: " ++ vars.correlationID,
+    message: error.description default error.detailedDescription,
+    orgId: p("anypoint.orgId") default "",
+    envId: p("anypoint.envId") default "",
+    timestamp: now(),
+    appId: app.name default ""
+}]]></ee:set-payload>
+					</ee:message>
+				</ee:transform>
+				<logger level="INFO" doc:name="Logger" doc:id="679e6873-c3a8-4b46-aa32-61f9c38b6487" message="#[payload]"/>
+			</on-error-propagate>
+			</error-handler>
+		</try>
+			<logger level="INFO" doc:name="Logger" doc:id="f093afce-3487-43bc-9631-9b304699d8cd" />
+		</tracing:with-correlation-id>
+	</flow>
+</mule>

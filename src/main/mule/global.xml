@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule xmlns:secure-properties="http://www.mulesoft.org/schema/mule/secure-properties"
+	xmlns:apikit="http://www.mulesoft.org/schema/mule/mule-apikit"
+	xmlns:sftp="http://www.mulesoft.org/schema/mule/sftp"
+	xmlns:http="http://www.mulesoft.org/schema/mule/http" xmlns="http://www.mulesoft.org/schema/mule/core"
+	xmlns:doc="http://www.mulesoft.org/schema/mule/documentation"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="
+http://www.mulesoft.org/schema/mule/mule-apikit http://www.mulesoft.org/schema/mule/mule-apikit/current/mule-apikit.xsd 
+http://www.mulesoft.org/schema/mule/sftp http://www.mulesoft.org/schema/mule/sftp/current/mule-sftp.xsd 
+http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+http://www.mulesoft.org/schema/mule/secure-properties http://www.mulesoft.org/schema/mule/secure-properties/current/mule-secure-properties.xsd">
+	
+	<http:listener-config name="httpListenerConfig">
+        <http:listener-connection host="0.0.0.0" port="8081" />
+    </http:listener-config>
+	<configuration-properties doc:name="Env Configuration properties" doc:id="be0e6162-0e9b-4bea-9154-794074b3a178" file="properties/${env}.properties" doc:description="Env specific properties" />
+    <configuration-properties doc:name="Default Configuration properties" doc:id="b51f49b4-e832-4b6c-90fc-47fb8d4b289d" file="properties/default.properties" doc:description="deafult properties" />
+    <secure-properties:config name="secure-properties-config-env" doc:name="Secure Properties Config" doc:id="6c9c1e4c-d462-4cc1-984a-8d1b4e7d59d0" key="${secure.key}" file="properties/${env}-secure.properties" doc:description="Env specific secure properties" />
+    <http:request-config name="HTTP_Request_configuration" doc:name="HTTP Request configuration" doc:id="c430dc15-5195-4bd3-a35f-bae03b1b0b53" >
+		<http:request-connection protocol="HTTPS" host="${http.tls.host}" port="${http.tls.port}" connectionIdleTimeout="${http.tls.idletimeout}">
+		</http:request-connection>
+	</http:request-config>
+	
+
+</mule>
